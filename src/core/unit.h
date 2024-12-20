@@ -587,7 +587,7 @@ typedef struct UnitVTable {
 
         /* Add a bind/image mount into the unit namespace while it is running. */
         int (*live_mount)(Unit *u, const char *src, const char *dst, sd_bus_message *message, MountInNamespaceFlags flags, const MountOptions *options, sd_bus_error *error);
-        int (*can_live_mount)(const Unit *u, sd_bus_error *error);
+        int (*can_live_mount)(Unit *u, sd_bus_error *error);
 
         /* Serialize state and file descriptors that should be carried over into the new
          * instance after reexecution. */
@@ -640,6 +640,9 @@ typedef struct UnitVTable {
         /* Called whenever we learn a handoff timestamp */
         void (*notify_handoff_timestamp)(Unit *u, const struct ucred *ucred, const dual_timestamp *ts);
 
+        /* Called whenever we learn about a child process */
+        void (*notify_pidref)(Unit *u, PidRef *parent_pidref, PidRef *child_pidref);
+
         /* Called whenever a name this Unit registered for comes or goes away. */
         void (*bus_name_owner_change)(Unit *u, const char *new_owner);
 
@@ -650,7 +653,7 @@ typedef struct UnitVTable {
         int (*bus_commit_properties)(Unit *u);
 
         /* Return the unit this unit is following */
-        Unit *(*following)(Unit *u);
+        Unit* (*following)(Unit *u);
 
         /* Return the set of units that are following each other */
         int (*following_set)(Unit *u, Set **s);
@@ -1033,7 +1036,7 @@ int unit_failure_action_exit_status(Unit *u);
 
 int unit_test_trigger_loaded(Unit *u);
 
-void unit_destroy_runtime_data(Unit *u, const ExecContext *context);
+void unit_destroy_runtime_data(Unit *u, const ExecContext *context, bool destroy_runtime_dir);
 int unit_clean(Unit *u, ExecCleanMask mask);
 int unit_can_clean(Unit *u, ExecCleanMask *ret_mask);
 
@@ -1047,7 +1050,7 @@ void unit_next_freezer_state(Unit *u, FreezerAction action, FreezerState *ret_ne
 void unit_set_freezer_state(Unit *u, FreezerState state);
 void unit_freezer_complete(Unit *u, FreezerState kernel_state);
 
-int unit_can_live_mount(const Unit *u, sd_bus_error *error);
+int unit_can_live_mount(Unit *u, sd_bus_error *error);
 int unit_live_mount(Unit *u, const char *src, const char *dst, sd_bus_message *message, MountInNamespaceFlags flags, const MountOptions *options, sd_bus_error *error);
 
 Condition *unit_find_failed_condition(Unit *u);

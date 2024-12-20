@@ -694,17 +694,6 @@ int access_fd(int fd, int mode) {
         return 0;
 }
 
-void unlink_tempfilep(char (*p)[]) {
-        assert(p);
-
-        /* If the file is created with mkstemp(), it will (almost always)
-         * change the suffix. Treat this as a sign that the file was
-         * successfully created. We ignore both the rare case where the
-         * original suffix is used and unlink failures. */
-        if (!endswith(*p, ".XXXXXX"))
-                (void) unlink(*p);
-}
-
 int unlinkat_deallocate(int fd, const char *name, UnlinkDeallocateFlags flags) {
         _cleanup_close_ int truncate_fd = -EBADF;
         struct stat st;
@@ -1142,6 +1131,8 @@ int xopenat_full(int dir_fd, const char *path, int open_flags, XOpenFlags xopen_
          *   • If O_CREAT is used with XO_LABEL, any created file will be immediately relabelled.
          *
          *   • If the path is specified NULL or empty, behaves like fd_reopen().
+         *
+         *   • If XO_NOCOW is specified will turn on the NOCOW btrfs flag on the file, if available.
          */
 
         if (isempty(path)) {
